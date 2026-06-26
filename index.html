@@ -28,7 +28,9 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
 .kpi .v{font-family:var(--disp);font-weight:700;font-size:23px;color:var(--navy)}
 .kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.kpi.or .v{color:var(--orange)}.kpi.ok .v{color:var(--ok)}.kpi.am .v{color:var(--am)}.kpi.bl .v{color:var(--acc)}
+.kpi.or .v{color:var(--orange)}.kpi.ok .v{color:var(--ok)}.kpi.am .v{color:var(--am)}.kpi.bl .v{color:var(--acc)}.kpi.rd .v{color:var(--rd)}
+.prog{height:10px;background:#e6eaf4;border-radius:6px;overflow:hidden}
+.progf{height:100%;background:var(--ok);transition:width .2s}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:14px}
 .panel h3{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--navy);margin-bottom:10px}
 .enc{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
@@ -113,7 +115,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 <body>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v2</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v3</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -197,9 +199,9 @@ function render(){
     '<button class="'+(TURNO==='dia'?'on':'')+'" onclick="setTurno(\'dia\')">☀ Dia</button>'+
     '<button class="'+(TURNO==='noite'?'on':'')+'" onclick="setTurno(\'noite\')">🌙 Noite</button>';
   document.getElementById('data').value=DATA;
-  var tabs=[['montar','Montar Programação'],['prog','Programação do Turno'],['calib','Calibração de Efetivo'],['banco','Banco de Atividades'],['equip','Equipamentos']];
+  var tabs=[['montar','Montar Programação'],['prog','Programação do Turno'],['resumo','Resumo do Turno'],['calib','Calibração de Efetivo'],['banco','Banco de Atividades'],['equip','Equipamentos']];
   document.getElementById('tabs').innerHTML=tabs.map(function(x){return '<button class="tab '+(VIEW===x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</button>';}).join('');
-  document.getElementById('view').innerHTML=VIEW==='montar'?renderMontar():VIEW==='prog'?renderProg():VIEW==='calib'?renderCalib():VIEW==='banco'?renderBanco():renderEquip();
+  document.getElementById('view').innerHTML=VIEW==='montar'?renderMontar():VIEW==='prog'?renderProg():VIEW==='resumo'?renderResumo():VIEW==='calib'?renderCalib():VIEW==='banco'?renderBanco():renderEquip();
 }
 function kpisMontar(){
   var s=selT();var nAtiv=0,nTags={};Object.keys(s).forEach(function(t){nTags[t]=1;nAtiv+=Object.keys(s[t]).length;});
@@ -219,8 +221,8 @@ function renderMontar(){
     var tags=g.tags.filter(function(t){return FAREA==='todas'||area(t)===FAREA;});
     if(!tags.length)return'';
     var nProg=tags.reduce(function(a,t){return a+((s[t]&&Object.keys(s[t]).length)||0);},0);
-    var chips=tags.map(function(t){var e=DADOS.equip[t]||{};var ar=area(t);var ks=s[t]?Object.keys(s[t]):[];var seln=ks.length;var done=ks.filter(function(k){return s[t][k].st==='c';}).length;
-      return '<div class="tagchip '+(seln?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(seln?' <span class="n" title="Atividades programadas">'+seln+'</span>':'')+(done?' <span class="nc" title="Atividades concluídas">'+done+' ✓</span>':'')+'</div>';}).join('');
+    var chips=tags.map(function(t){var e=DADOS.equip[t]||{};var ar=area(t);var ks=s[t]?Object.keys(s[t]):[];var seln=ks.length;var done=ks.filter(function(k){return s[t][k].st==='c';}).length;var pend=seln-done;
+      return '<div class="tagchip '+(seln?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(pend?' <span class="n" title="Atividades programadas a concluir">'+pend+'</span>':'')+(done?' <span class="nc" title="Atividades concluídas">'+done+' ✓</span>':'')+'</div>';}).join('');
     return '<div class="enc"><div class="ench"><span class="nm">'+nm+'</span><span class="cap">'+tags.length+' equipamentos</span><span class="badge">'+nProg+' atividades</span></div><div class="tags">'+chips+'</div></div>';
   }).join('')||'<div class="empty">Nenhum encarregado/equipamento para este turno/área.</div>';
   return kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+(TURNO==='dia'?'Turno Dia ☀':'Turno Noite 🌙')+' · '+fmtBR(DATA)+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
@@ -311,6 +313,35 @@ function renderCalib(){
       '<table class="tbl"><thead><tr><th>Disciplina</th><th>Efetivo disponível</th><th>Demanda</th><th>Capacidade</th><th>Situação</th></tr></thead><tbody>'+(rows||'<tr><td colspan="5" class="empty">Sem recursos nas atividades selecionadas.</td></tr>')+'</tbody></table></div>';
   }).join('');
   return cfg+cards;
+}
+function renderResumo(){
+  var s=selT();var PCTN={n:0,a:50,c:100};
+  var encs=DADOS.enc.filter(function(g){return g.tags.some(function(t){return s[t]&&Object.keys(s[t]).length;});});
+  var bar='<div class="noprint" style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn" onclick="window.print()">🖨 Imprimir resumo</button></div>';
+  if(!encs.length)return '<div class="panel">'+bar+'<div class="empty">Nada programado para '+(TURNO==='dia'?'o Dia':'a Noite')+' de '+fmtBR(DATA)+'.</div></div>';
+  var T=0,D=0,A=0,N=0;
+  var blocks=encs.map(function(g){var nm=encNome(g);var et=0,ed=0,ea=0,en0=0,sump=0;var items='';
+    g.tags.forEach(function(t){var sel=s[t];if(!sel)return;
+      atDe(t).forEach(function(a){if(a.f!==undefined)return;var e=sel[a.i];if(!e)return;et++;var st=e.st;var p=(e.pct!=null?(parseFloat((''+e.pct).replace(',','.'))||0):PCTN[st]);sump+=p;
+        if(st==='c')ed++;else if(st==='a')ea++;else en0++;
+        items+='<tr><td>'+t+'</td><td>'+a.a+'</td><td class="cc">'+p+'%</td><td><span class="pill p-'+st+'">'+STLBL[st]+'</span></td></tr>';});
+    });
+    T+=et;D+=ed;A+=ea;N+=en0;
+    var pc=et?Math.round(ed/et*100):0;var avg=et?Math.round(sump/et):0;
+    return '<div class="panel"><h3>👷 '+nm+'</h3>'+
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-bottom:8px">'+
+      '<span><b>'+et+'</b> programadas</span>'+
+      '<span style="color:var(--rd)">⚪ <b>'+en0+'</b> não iniciadas</span>'+
+      '<span style="color:var(--am)">🟡 <b>'+ea+'</b> em andamento</span>'+
+      '<span style="color:var(--ok)">🟢 <b>'+ed+'</b> concluídas</span>'+
+      '<span>Avanço médio: <b>'+avg+'%</b></span></div>'+
+      '<div class="prog"><div class="progf" style="width:'+pc+'%"></div></div>'+
+      '<table class="tbl" style="margin-top:10px"><thead><tr><th>TAG</th><th>Atividade</th><th>%</th><th>Status</th></tr></thead><tbody>'+items+'</tbody></table></div>';
+  }).join('');
+  var gpc=T?Math.round(D/T*100):0;
+  var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · PERMUTADORES · '+fmtBR(DATA)+'</div></div></div>'+
+    '<div class="kpis" style="margin-top:12px">'+kpi('bl',T,'Programadas')+kpi('rd',N,'Não iniciadas')+kpi('am',A,'Em andamento')+kpi('ok',D,'Concluídas')+kpi('ok',gpc+'%','% Executado')+'</div></div>';
+  return bar+head+blocks;
 }
 function renderBanco(){
   var tag=window._bancoTag||DADOS.ordem[0];
