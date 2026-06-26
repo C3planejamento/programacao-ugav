@@ -16,6 +16,18 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .top h1{font-family:var(--disp);font-weight:600;font-size:16px;font-weight:600}
 .top .sub{font-size:11.5px;opacity:.8;margin-top:1px}
 .top .sp{margin-left:auto}
+.usr{color:#fff;font-size:12px;font-weight:700;opacity:.92}
+.logout{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;padding:7px 11px;font-weight:600;font-size:12px;cursor:pointer;font-family:var(--body)}
+.loginwrap{position:fixed;inset:0;background:linear-gradient(135deg,#27306A,#181d44);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.loginwrap.hidden{display:none}
+.loginbox{background:#fff;border-radius:16px;padding:30px 28px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.loginlogo{height:54px;margin-bottom:14px}
+.loginbox h2{font-family:var(--disp);color:var(--navy);font-size:22px;letter-spacing:.5px;font-weight:700}
+.lsub{color:var(--muted);font-size:12px;margin-bottom:18px}
+.loginbox input{width:100%;border:1px solid var(--inpline);border-radius:9px;padding:11px 13px;font-size:14px;margin-bottom:10px;font-family:var(--body)}
+.loginbox input:focus{outline:2px solid var(--acc);border-color:var(--acc)}
+.lbtn{width:100%;background:var(--acc);color:#fff;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--body);margin-top:4px}
+.lerr{color:var(--rd);font-size:12.5px;min-height:16px;margin-bottom:4px;font-weight:600}
 .turnos{display:flex;gap:6px}
 .turnos button,.tab{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;padding:8px 13px;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--body)}
 .turnos button.on{background:var(--orange)}
@@ -113,12 +125,24 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </style>
 </head>
 <body>
+<div id="login" class="loginwrap">
+  <div class="loginbox">
+    <img class="loginlogo" id="loginlogo" alt="C3 Engenharia">
+    <h2>PROGRAMAÇÃO UGAV</h2>
+    <div class="lsub">Permutadores · RPBC · Parada de Manutenção</div>
+    <input id="lu" placeholder="Usuário" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('lp').focus()">
+    <input id="lp" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+    <div id="lerr" class="lerr"></div>
+    <button class="lbtn" onclick="entrar()">Entrar</button>
+  </div>
+</div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v3</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v4</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
+  <span class="usr" id="usuario"></span><button class="logout" onclick="logout()" title="Sair">⎋ Sair</button>
 </div>
 <div class="tabs" id="tabs"></div>
 <div class="wrap" id="view"></div>
@@ -370,7 +394,16 @@ function remBase(tag,id){if(DB.baseExtra&&DB.baseExtra[tag]){DB.baseExtra[tag]=D
 function setProgF(t,k,f,v){var st=selT()[t];var e=st&&st[k];if(e){e[f]=v;save();}}
 function setProgPct(t,k,v){var st=selT()[t];var e=st&&st[k];if(e){var n=parseFloat((''+v).replace(',','.'));if(isNaN(n))n=0;if(n<0)n=0;if(n>100)n=100;e.pct=''+n;e.st=n>=100?'c':n>0?'a':'n';save();render();}}
 function setProgEf(t,k,d,v){var st=selT()[t];var e=st&&st[k];if(e){e.ef=e.ef||{};e.ef[d]=(v===''?null:(parseInt(v)||0));save();}}
-render();
+var USERS={taiza:'1234',artur:'4321',vanessa:'1001',c3plan:'101520'};
+var SESS='c3progugav_sess';
+function entrar(){var u=(document.getElementById('lu').value||'').trim().toLowerCase();var p=(document.getElementById('lp').value||'').trim();
+  if(USERS[u]&&USERS[u]===p){try{localStorage.setItem(SESS,u);}catch(e){}showApp(u);}
+  else{document.getElementById('lerr').textContent='Usuário ou senha inválidos.';}}
+function logout(){try{localStorage.removeItem(SESS);}catch(e){}var lp=document.getElementById('lp');if(lp)lp.value='';var le=document.getElementById('lerr');if(le)le.textContent='';document.getElementById('login').classList.remove('hidden');}
+function showApp(u){document.getElementById('login').classList.add('hidden');var ub=document.getElementById('usuario');if(ub)ub.textContent='👤 '+u.toUpperCase();render();}
+function checkSess(){var ll=document.getElementById('loginlogo');if(ll&&typeof LOGO!=='undefined')ll.src=LOGO;var u='';try{u=localStorage.getItem(SESS)||'';}catch(e){}
+  if(u&&USERS[u]){showApp(u);}else{document.getElementById('login').classList.remove('hidden');}}
+checkSess();
 </script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
