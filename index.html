@@ -41,6 +41,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .tagchip:hover{border-color:var(--acc)}
 .tagchip .dot{width:9px;height:9px;border-radius:50%}
 .tagchip .n{background:var(--orange);color:#fff;border-radius:14px;font-size:10.5px;padding:1px 6px;font-weight:700}
+.tagchip .nc{background:var(--ok);color:#fff;border-radius:14px;font-size:10.5px;padding:1px 6px;font-weight:700}
 .tagchip.sel{border-color:var(--acc);box-shadow:0 0 0 2px rgba(43,117,228,.18)}
 .areatag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:12px;color:#fff}
 .ab-acida{background:var(--acida)}.ab-naoacida{background:var(--naoacida)}.ab-aircooler{background:var(--aircooler)}
@@ -112,7 +113,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 <body>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v1</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v2</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -218,8 +219,8 @@ function renderMontar(){
     var tags=g.tags.filter(function(t){return FAREA==='todas'||area(t)===FAREA;});
     if(!tags.length)return'';
     var nProg=tags.reduce(function(a,t){return a+((s[t]&&Object.keys(s[t]).length)||0);},0);
-    var chips=tags.map(function(t){var e=DADOS.equip[t]||{};var ar=area(t);var sel=s[t]&&Object.keys(s[t]).length;
-      return '<div class="tagchip '+(sel?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(sel?' <span class="n">'+Object.keys(s[t]).length+'</span>':'')+'</div>';}).join('');
+    var chips=tags.map(function(t){var e=DADOS.equip[t]||{};var ar=area(t);var ks=s[t]?Object.keys(s[t]):[];var seln=ks.length;var done=ks.filter(function(k){return s[t][k].st==='c';}).length;
+      return '<div class="tagchip '+(seln?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(seln?' <span class="n" title="Atividades programadas">'+seln+'</span>':'')+(done?' <span class="nc" title="Atividades concluídas">'+done+' ✓</span>':'')+'</div>';}).join('');
     return '<div class="enc"><div class="ench"><span class="nm">'+nm+'</span><span class="cap">'+tags.length+' equipamentos</span><span class="badge">'+nProg+' atividades</span></div><div class="tags">'+chips+'</div></div>';
   }).join('')||'<div class="empty">Nenhum encarregado/equipamento para este turno/área.</div>';
   return kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+(TURNO==='dia'?'Turno Dia ☀':'Turno Noite 🌙')+' · '+fmtBR(DATA)+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
