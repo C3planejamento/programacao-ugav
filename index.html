@@ -215,7 +215,8 @@ window.__applyRemote=function(id,d){_applyingRemote=true;try{
   else if(id.indexOf('sel__')===0){var ck=id.slice(5).split('__').join('|');DB.sel=DB.sel||{};DB.sel[ck]=d;}
   save_local();if(document.getElementById('view'))render();
 }finally{_applyingRemote=false;}};
-var TURNO='dia', DATA=hojeISO(), VIEW='montar', FAREA='todas', CUR=null;
+var TURNO='dia', DATA=hojeISO(), VIEW='montar', FAREA='todas', CUR=null, RESF='todos';
+function setResF(v){RESF=v;render();}
 var HORAS={dia:{ini:'07:30',fim:'17:30',h:10,lock:10},noite:{ini:'19:30',fim:'04:30',h:9,lock:20}};
 function horasTurno(){var c=DB.cfg||{};var k='horas_'+TURNO;return c[k]!=null?c[k]:(HORAS[TURNO]||HORAS.dia).h;}
 function turnoLabel(){var h=HORAS[TURNO]||HORAS.dia;return (TURNO==='dia'?'Dia ☀':'Noite 🌙')+' · '+h.ini+'–'+h.fim;}
@@ -419,16 +420,18 @@ function renderCalib(){
 function renderResumo(){
   var s=selT();var PCTN={n:0,a:50,c:100};
   var encs=DADOS.enc.filter(function(g){return g.tags.some(function(t){return s[t]&&Object.keys(s[t]).length;});});
-  var bar='<div class="noprint" style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn" onclick="window.print()">🖨 Imprimir resumo</button></div>';
+  var fb='<div class="flt">'+[['todos','Todas'],['n','⚪ Não iniciadas'],['a','🟡 Em andamento'],['c','🟢 Concluídas']].map(function(o){return '<button class="'+(RESF===o[0]?'on':'')+'" onclick="setResF(\''+o[0]+'\')">'+o[1]+'</button>';}).join('')+'</div>';
+  var bar='<div class="noprint" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+fb+'<button class="btn" onclick="window.print()">🖨 Imprimir resumo</button></div>';
   if(!encs.length)return '<div class="panel">'+bar+'<div class="empty">Nada programado para '+(TURNO==='dia'?'o Dia':'a Noite')+' de '+fmtBR(DATA)+'.</div></div>';
   var T=0,D=0,A=0,N=0;
   var blocks=encs.map(function(g){var nm=encNome(g);var et=0,ed=0,ea=0,en0=0,sump=0;var items='';
     g.tags.forEach(function(t){var sel=s[t];if(!sel)return;
       atDe(t).forEach(function(a){if(a.f!==undefined)return;var e=sel[a.i];if(!e)return;et++;var st=e.st;var p=(e.pct!=null?(parseFloat((''+e.pct).replace(',','.'))||0):PCTN[st]);sump+=p;
         if(st==='c')ed++;else if(st==='a')ea++;else en0++;
-        items+='<tr><td>'+t+'</td><td>'+a.a+'</td><td class="cc">'+p+'%</td><td><span class="pill p-'+st+'">'+STLBL[st]+'</span></td></tr>';});
+        if(RESF==='todos'||st===RESF)items+='<tr><td>'+t+'</td><td>'+a.a+'</td><td class="cc">'+p+'%</td><td><span class="pill p-'+st+'">'+STLBL[st]+'</span></td></tr>';});
     });
     T+=et;D+=ed;A+=ea;N+=en0;
+    if(RESF!=='todos'&&!items)return '';
     var pc=et?Math.round(ed/et*100):0;var avg=et?Math.round(sump/et):0;
     return '<div class="panel"><h3>👷 '+nm+'</h3>'+
       '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-bottom:8px">'+
@@ -440,6 +443,7 @@ function renderResumo(){
       '<div class="prog"><div class="progf" style="width:'+pc+'%"></div></div>'+
       '<table class="tbl" style="margin-top:10px"><thead><tr><th>TAG</th><th>Atividade</th><th>%</th><th>Status</th></tr></thead><tbody>'+items+'</tbody></table></div>';
   }).join('');
+  if(RESF!=='todos'&&!blocks.replace(/\s/g,''))blocks='<div class="panel"><div class="empty">Nenhuma atividade com status "'+STLBL[RESF]+'" neste turno.</div></div>';
   var gpc=T?Math.round(D/T*100):0;
   var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · PERMUTADORES · '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</div></div></div>'+
     '<div class="kpis" style="margin-top:12px">'+kpi('bl',T,'Programadas')+kpi('rd',N,'Não iniciadas')+kpi('am',A,'Em andamento')+kpi('ok',D,'Concluídas')+kpi('ok',gpc+'%','% Executado')+'</div></div>';
@@ -482,7 +486,7 @@ function showApp(u){USER=u;document.getElementById('login').classList.add('hidde
 function mostrarHub(){var hl=document.getElementById('hublogo');if(hl&&typeof LOGO!=='undefined')hl.src=LOGO;
   Object.keys(SUBAPPS).forEach(function(k){var el=document.getElementById('hcn_'+k);if(el)el.textContent=SUBAPPS[k].d.ordem.length+' equipamentos';});
   document.getElementById('hub').classList.remove('hidden');}
-function setSubApp(tp){SUB=tp;DADOS=SUBAPPS[tp].d;FAREA='todas';VIEW='montar';document.getElementById('hub').classList.add('hidden');var t=document.getElementById('apptitle');if(t)t.textContent='PROGRAMAÇÃO UGAV — '+SUBAPPS[tp].nome.toUpperCase();render();}
+function setSubApp(tp){SUB=tp;DADOS=SUBAPPS[tp].d;FAREA='todas';RESF='todos';VIEW='montar';document.getElementById('hub').classList.add('hidden');var t=document.getElementById('apptitle');if(t)t.textContent='PROGRAMAÇÃO UGAV — '+SUBAPPS[tp].nome.toUpperCase();render();}
 function voltarHub(){mostrarHub();}
 function checkSess(){var ll=document.getElementById('loginlogo');if(ll&&typeof LOGO!=='undefined')ll.src=LOGO;var u='';try{u=localStorage.getItem(SESS)||'';}catch(e){}
   if(u&&USERS[u]){showApp(u);}else{document.getElementById('login').classList.remove('hidden');}}
