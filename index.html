@@ -145,7 +145,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v7</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v8</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -200,7 +200,7 @@ function revN(){var b=chaveBase();var mx=maxRev();var v=REVVIEW[b];if(v==null||v
 function setRev(r){REVVIEW[chaveBase()]=r;render();}
 function chave(){var r=revN();return DATA+'|'+TURNO+(r>0?'|r'+r:'');}
 function selT(){DB.sel[chave()]=DB.sel[chave()]||{};return DB.sel[chave()];}
-function bloqueada(){if(isAdmin()&&ADMINUNLOCK[chave()])return false;var mx=maxRev();var vr=revN();
+function bloqueada(){if(isAdmin())return false;var mx=maxRev();var vr=revN();
   if(vr<mx)return true; /* vendo revisão anterior = só leitura */
   if(vr>0)return false; /* última revisão é editável */
   if(DATA<hojeISO())return true;
