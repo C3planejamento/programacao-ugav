@@ -79,6 +79,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .act .ck{width:20px;height:20px;margin-top:2px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
 .act .desc{flex:1;font-size:13.5px}
 .act .rec{font-size:11px;color:var(--muted);margin-top:2px}
+.act.doneprev{opacity:.78;background:#f1f8f3;border-radius:6px}
 .wfase{display:flex;align-items:center;gap:8px;background:#eef2fb;border-left:4px solid var(--orange);padding:7px 10px;border-radius:7px;margin:14px 0 4px}
 .wft{font-family:var(--disp);font-weight:600;font-size:13px;color:var(--navy);flex:1}
 .wact{display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px solid var(--line)}
@@ -145,7 +146,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v8</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v9</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -287,6 +288,11 @@ function renderMontar(){
   }).join('')||'<div class="empty">Nenhum encarregado/equipamento para este turno/área.</div>';
   return revBanner()+kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
 }
+function concluidaEmOutroTurno(tag,item){var curBase=chaveBase();
+  for(var k in DB.sel){var base=k.split('|').slice(0,2).join('|');if(base===curBase)continue;
+    var e=DB.sel[k]&&DB.sel[k][tag]&&DB.sel[k][tag][item];
+    if(e&&e.st==='c'){var p=base.split('|');return (p[1]==='dia'?'Dia ☀':'Noite 🌙')+' '+fmtBR(p[0]);}}
+  return null;}
 function abrir(t){CUR=t;var e=DADOS.equip[t]||{};var ar=area(t);
   document.getElementById('mT').textContent=t+(ar?'  ·  '+AREALBL(ar):'');
   document.getElementById('mS').textContent=(e.desc||'')+' · '+(e.tipo||'')+' · Enc.: '+encNome(DADOS.enc.find(function(g){return g.tags.indexOf(t)>=0;})||{dia:'—'});
@@ -294,6 +300,10 @@ function abrir(t){CUR=t;var e=DADOS.equip[t]||{};var ar=area(t);
   acts.forEach(function(a){
     if(a.f){html+='<div class="fase">'+a.n+'. '+a.f+'</div>';return;}
     var inc=s[t]&&s[t][a.i];var st=inc?s[t][a.i].st:null;
+    var co=(!inc)?concluidaEmOutroTurno(t,a.i):null;
+    if(co){html+='<div class="act doneprev"><input type="checkbox" class="ck" checked disabled>'+
+      '<div class="desc">'+a.n+' '+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+
+      '<div class="st"><span class="pill p-c">✓ Concluída — '+co+'</span> <span style="font-size:11px;color:var(--muted)">turno anterior · não editável</span></div></div></div>';return;}
     html+='<div class="act"><input type="checkbox" class="ck"'+DIS+' '+(inc?'checked':'')+' onchange="toggleInc(\''+t+'\',\''+a.i+'\',this.checked);abrir(\''+t+'\')">'+
       '<div class="desc">'+a.n+' '+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+
       (inc?'<div class="st"><button class="n '+(st==='n'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'n\')">Não iniciada</button><button class="a '+(st==='a'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'a\')">Em andamento</button><button class="c '+(st==='c'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'c\')">Concluída</button></div>':'')+
