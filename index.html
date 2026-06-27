@@ -24,6 +24,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .revlbl{background:var(--navy);color:#fff;font-weight:700;font-size:12px;padding:3px 10px;border-radius:14px;letter-spacing:.5px}
 .revpick{border:1px solid var(--inpline);background:#fff;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;color:var(--navy);margin-left:4px}
 .revpick.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.admbtn{background:var(--rd)!important;color:#fff!important}
 .loginwrap{position:fixed;inset:0;background:linear-gradient(135deg,#27306A,#181d44);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .loginwrap.hidden{display:none}
 .loginbox{background:#fff;border-radius:16px;padding:30px 28px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -144,7 +145,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v6</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v7</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -190,13 +191,16 @@ function hojeISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1
 function p2(n){return String(n).padStart(2,'0');}
 function fmtBR(s){if(!s)return'';var a=s.split('-');return a[2]+'/'+a[1]+'/'+a[0];}
 function chaveBase(){return DATA+'|'+TURNO;}
-var REVVIEW={};
+var REVVIEW={};var USER='',ADMINUNLOCK={};
+function isAdmin(){return USER==='c3plan';}
+function descongelar(){if(!isAdmin())return;ADMINUNLOCK[chave()]=true;render();}
+function apagarRevisoes(){if(!isAdmin())return;var mx=maxRev();if(mx<1){alert('Não há revisões — já está na REV 0.');return;}if(!confirm('Apagar as '+mx+' revisão(ões) deste turno/data e voltar para a REV 0? (mantém a REV 0)'))return;var base=chaveBase();for(var i=1;i<=mx;i++){var k=base+'|r'+i;if(DB.sel)delete DB.sel[k];if(window.__pushDoc)window.__pushDoc('sel__'+k.split('|').join('__'),{});}DB.revn=DB.revn||{};DB.revn[base]=0;delete REVVIEW[base];save();render();}
 function maxRev(){DB.revn=DB.revn||{};return DB.revn[chaveBase()]||0;}
 function revN(){var b=chaveBase();var mx=maxRev();var v=REVVIEW[b];if(v==null||v>mx)v=mx;return v;}
 function setRev(r){REVVIEW[chaveBase()]=r;render();}
 function chave(){var r=revN();return DATA+'|'+TURNO+(r>0?'|r'+r:'');}
 function selT(){DB.sel[chave()]=DB.sel[chave()]||{};return DB.sel[chave()];}
-function bloqueada(){var mx=maxRev();var vr=revN();
+function bloqueada(){if(isAdmin()&&ADMINUNLOCK[chave()])return false;var mx=maxRev();var vr=revN();
   if(vr<mx)return true; /* vendo revisão anterior = só leitura */
   if(vr>0)return false; /* última revisão é editável */
   if(DATA<hojeISO())return true;
@@ -207,9 +211,10 @@ function criarRevisao(){var base=chaveBase();var mx=maxRev();var next=mx+1;var c
   DB.sel=DB.sel||{};DB.sel[nextKey]=JSON.parse(JSON.stringify(DB.sel[curKey]||{}));DB.revn=DB.revn||{};DB.revn[base]=next;REVVIEW[base]=next;save();render();}
 function revPicker(){var mx=maxRev();if(mx<1)return '';var cur=revN();var s='<span style="font-size:12px;color:var(--muted);margin-left:6px">Ver revisão:</span>';for(var i=0;i<=mx;i++){s+='<button class="revpick'+(i===cur?' on':'')+'" onclick="setRev('+i+')">REV '+i+'</button>';}return s;}
 function revBanner(){var mx=maxRev();var cur=revN();var btn='<button class="btn ghost" onclick="criarRevisao()">+ Criar Revisão (REV'+(mx+1)+')</button>';
+  var adm=isAdmin()?((bloqueada()?'<button class="btn admbtn" onclick="descongelar()">🔓 Descongelar</button>':'')+(mx>0?'<button class="btn ghost" onclick="apagarRevisoes()">🗑 Apagar revisões</button>':'')):'';
   if(bloqueada()){var msg;if(cur<mx)msg='Revisão anterior (histórico). Volte para a REV '+mx+' para editar.';else if(DATA<hojeISO())msg='Data passada. Crie uma revisão para alterar.';else msg='Congelada após '+(HORAS[TURNO]||HORAS.dia).lock+'h do turno. Crie uma revisão para alterar.';
-    return '<div class="lockbar noprint">🔒 <b>Somente leitura</b> — '+msg+' <span class="revlbl">REV '+cur+'</span>'+revPicker()+btn+'</div>';}
-  return '<div class="revbar noprint"><span class="revlbl">REV '+cur+'</span><span style="color:var(--muted);font-size:12px">editável</span>'+revPicker()+btn+'</div>';}
+    return '<div class="lockbar noprint">🔒 <b>Somente leitura</b> — '+msg+' <span class="revlbl">REV '+cur+'</span>'+revPicker()+btn+adm+'</div>';}
+  return '<div class="revbar noprint"><span class="revlbl">REV '+cur+'</span><span style="color:var(--muted);font-size:12px">editável</span>'+revPicker()+btn+adm+'</div>';}
 function encNome(g){return TURNO==='dia'?g.dia:(g.noite||g.dia);}
 function recDisc(rec){ /* "02 CALDEIREIRO" -> {ca:2} (heurística) */
   rec=(rec||'').toUpperCase();var m=rec.match(/(\d+)/);var q=m?parseInt(m[1]):1;
@@ -431,7 +436,7 @@ function entrar(){var u=(document.getElementById('lu').value||'').trim().toLower
   if(USERS[u]&&USERS[u]===p){try{localStorage.setItem(SESS,u);}catch(e){}showApp(u);}
   else{document.getElementById('lerr').textContent='Usuário ou senha inválidos.';}}
 function logout(){try{localStorage.removeItem(SESS);}catch(e){}var lp=document.getElementById('lp');if(lp)lp.value='';var le=document.getElementById('lerr');if(le)le.textContent='';document.getElementById('login').classList.remove('hidden');}
-function showApp(u){document.getElementById('login').classList.add('hidden');var ub=document.getElementById('usuario');if(ub)ub.textContent='👤 '+u.toUpperCase();render();}
+function showApp(u){USER=u;document.getElementById('login').classList.add('hidden');var ub=document.getElementById('usuario');if(ub)ub.textContent='👤 '+u.toUpperCase()+(u==='c3plan'?' ★':'');render();}
 function checkSess(){var ll=document.getElementById('loginlogo');if(ll&&typeof LOGO!=='undefined')ll.src=LOGO;var u='';try{u=localStorage.getItem(SESS)||'';}catch(e){}
   if(u&&USERS[u]){showApp(u);}else{document.getElementById('login').classList.remove('hidden');}}
 checkSess();
