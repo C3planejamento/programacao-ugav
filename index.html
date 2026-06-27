@@ -18,6 +18,10 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .top .sp{margin-left:auto}
 .usr{color:#fff;font-size:12px;font-weight:700;opacity:.92}
 .logout{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;padding:7px 11px;font-weight:600;font-size:12px;cursor:pointer;font-family:var(--body)}
+.histb{background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;vertical-align:middle;letter-spacing:.5px;white-space:nowrap}
+.lockbar{background:#fdecea;border:1px solid #f5b7b1;color:#a93226;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.revbar{background:#eaf3ec;border:1px solid #bfe0c8;color:#1e7e34;border-radius:10px;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.revlbl{background:var(--navy);color:#fff;font-weight:700;font-size:12px;padding:3px 10px;border-radius:14px;letter-spacing:.5px}
 .loginwrap{position:fixed;inset:0;background:linear-gradient(135deg,#27306A,#181d44);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .loginwrap.hidden{display:none}
 .loginbox{background:#fff;border-radius:16px;padding:30px 28px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -138,10 +142,11 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v4</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v5</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
+  <span class="histb" id="histtop" style="display:none">📚 HISTÓRICO</span>
   <span class="usr" id="usuario"></span><button class="logout" onclick="logout()" title="Sair">⎋ Sair</button>
 </div>
 <div class="tabs" id="tabs"></div>
@@ -163,23 +168,38 @@ try{var s=localStorage.getItem(LS);if(s)DB=JSON.parse(s);}catch(e){}
 function save_local(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}}
 var _applyingRemote=false;
 function pushCloud(){if(_applyingRemote||!window.__pushDoc)return;try{
-  var ck=chave();window.__pushDoc('sel__'+ck.replace('|','__'),DB.sel[ck]||{});
-  window.__pushDoc('_meta',{meta:DB.meta||{},sup:DB.sup||{},efetivo:DB.efetivo||{},cfg:DB.cfg||{}});
+  var ck=chave();window.__pushDoc('sel__'+ck.split('|').join('__'),DB.sel[ck]||{});
+  window.__pushDoc('_meta',{meta:DB.meta||{},sup:DB.sup||{},efetivo:DB.efetivo||{},cfg:DB.cfg||{},revn:DB.revn||{}});
   window.__pushDoc('_wbs',{wbs:DB.wbs||{},baseExtra:DB.baseExtra||{}});
 }catch(e){}}
 function save(){save_local();pushCloud();}
 window.__applyRemote=function(id,d){_applyingRemote=true;try{
-  if(id==='_meta'){if(d.meta)DB.meta=d.meta;if(d.sup)DB.sup=d.sup;if(d.efetivo)DB.efetivo=d.efetivo;if(d.cfg)DB.cfg=d.cfg;}
+  if(id==='_meta'){if(d.meta)DB.meta=d.meta;if(d.sup)DB.sup=d.sup;if(d.efetivo)DB.efetivo=d.efetivo;if(d.cfg)DB.cfg=d.cfg;if(d.revn)DB.revn=d.revn;}
   else if(id==='_wbs'){if(d.wbs)DB.wbs=d.wbs;if(d.baseExtra)DB.baseExtra=d.baseExtra;}
-  else if(id.indexOf('sel__')===0){var ck=id.slice(5).replace('__','|');DB.sel=DB.sel||{};DB.sel[ck]=d;}
+  else if(id.indexOf('sel__')===0){var ck=id.slice(5).split('__').join('|');DB.sel=DB.sel||{};DB.sel[ck]=d;}
   save_local();if(document.getElementById('view'))render();
 }finally{_applyingRemote=false;}};
 var TURNO='dia', DATA=hojeISO(), VIEW='montar', FAREA='todas', CUR=null;
+var HORAS={dia:{ini:'07:30',fim:'17:30',h:10,lock:10},noite:{ini:'19:30',fim:'04:30',h:9,lock:20}};
+function horasTurno(){var c=DB.cfg||{};var k='horas_'+TURNO;return c[k]!=null?c[k]:(HORAS[TURNO]||HORAS.dia).h;}
+function turnoLabel(){var h=HORAS[TURNO]||HORAS.dia;return (TURNO==='dia'?'Dia ☀':'Noite 🌙')+' · '+h.ini+'–'+h.fim;}
+function histTag(){return DATA<hojeISO()?' <span class="histb">📚 HISTÓRICO</span>':'';}
 function hojeISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
 function p2(n){return String(n).padStart(2,'0');}
 function fmtBR(s){if(!s)return'';var a=s.split('-');return a[2]+'/'+a[1]+'/'+a[0];}
-function chave(){return DATA+'|'+TURNO;}
+function chaveBase(){return DATA+'|'+TURNO;}
+function revN(){DB.revn=DB.revn||{};return DB.revn[chaveBase()]||0;}
+function chave(){var r=revN();return DATA+'|'+TURNO+(r>0?'|r'+r:'');}
 function selT(){DB.sel[chave()]=DB.sel[chave()]||{};return DB.sel[chave()];}
+function bloqueada(){if(revN()>0)return false;if(DATA<hojeISO())return true;
+  if(DATA===hojeISO()){var lk=(HORAS[TURNO]||HORAS.dia).lock;var d=new Date();var nh=d.getHours()+d.getMinutes()/60;
+    if(nh>=lk){var s=selT();return Object.keys(s).some(function(t){return Object.keys(s[t]).length;});}}
+  return false;}
+function criarRevisao(){var base=chaveBase();var cur=revN();var next=cur+1;var curKey=base+(cur>0?'|r'+cur:'');var nextKey=base+'|r'+next;
+  DB.sel=DB.sel||{};DB.sel[nextKey]=JSON.parse(JSON.stringify(DB.sel[curKey]||{}));DB.revn=DB.revn||{};DB.revn[base]=next;save();render();}
+function revBanner(){var r=revN();var btn='<button class="btn ghost" onclick="criarRevisao()">+ Criar Revisão (REV'+(r+1)+')</button>';var lbl='<span class="revlbl">REV '+r+'</span>';
+  if(bloqueada())return '<div class="lockbar noprint">🔒 <b>Programação congelada</b> — '+(DATA<hojeISO()?'data passada':('após '+(HORAS[TURNO]||HORAS.dia).lock+'h do turno'))+'. Para alterar, crie uma revisão. '+lbl+btn+'</div>';
+  return '<div class="revbar noprint">'+lbl+'<span style="color:var(--muted);font-size:12px">editável</span>'+btn+'</div>';}
 function encNome(g){return TURNO==='dia'?g.dia:(g.noite||g.dia);}
 function recDisc(rec){ /* "02 CALDEIREIRO" -> {ca:2} (heurística) */
   rec=(rec||'').toUpperCase();var m=rec.match(/(\d+)/);var q=m?parseInt(m[1]):1;
@@ -207,11 +227,11 @@ function bancoDel(t,id){var a=ensureWbs(t);var i=wbsIdx(t,id);if(i<0)return;if(!
 function bancoAddPhase(t){var a=ensureWbs(t);var nf=prompt('Nome da nova fase (WBS):');if(!nf||!nf.trim())return;a.push({id:newId(),f:nf.trim()});save();render();}
 function bancoReset(t){if(!confirm('Restaurar '+t+' para o banco original? (perde as edições deste equipamento)'))return;if(DB.wbs)delete DB.wbs[t];if(DB.baseExtra)delete DB.baseExtra[t];save();render();}
 function subStatus(t,item){var s=selT();return (s[t]&&s[t][item])?s[t][item].st:null;}
-function toggleInc(t,item,checked){var s=selT();s[t]=s[t]||{};if(checked){if(!s[t][item])s[t][item]={st:'n'};}else{delete s[t][item];if(!Object.keys(s[t]).length)delete s[t];}save();}
-function setSt(t,item,st){var s=selT();s[t]=s[t]||{};s[t][item]=s[t][item]||{st:'n'};s[t][item].st=st;save();abrir(t);}
+function toggleInc(t,item,checked){if(bloqueada())return;var s=selT();s[t]=s[t]||{};if(checked){if(!s[t][item])s[t][item]={st:'n'};}else{delete s[t][item];if(!Object.keys(s[t]).length)delete s[t];}save();}
+function setSt(t,item,st){if(bloqueada())return;var s=selT();s[t]=s[t]||{};s[t][item]=s[t][item]||{st:'n'};s[t][item].st=st;save();abrir(t);}
 function actInfo(t,item){var sc=selT()[t]||{};var e=sc[item];if(e&&e.custom)return {a:e.a,r:e.r||''};var f=atDe(t).find(function(x){return x.i===item;});return f?{a:f.a,r:f.r||''}:{a:item,r:''};}
-function addCustom(t){if(!CUR)CUR=t;var a=prompt('Descrição da atividade (não listada):');if(!a||!a.trim())return;var r=prompt('Recurso (ex.: 02 CALDEIREIRO):','')||'';var s=selT();s[t]=s[t]||{};var n=1;while(s[t]['c'+n])n++;s[t]['c'+n]={st:'n',custom:1,a:a.trim(),r:r.trim()};save();abrir(t);}
-function remCustom(t,id){var s=selT();if(s[t])delete s[t][id];if(s[t]&&!Object.keys(s[t]).length)delete s[t];save();abrir(t);}
+function addCustom(t){if(bloqueada()){alert('Programação congelada. Crie uma revisão para alterar.');return;}if(!CUR)CUR=t;var a=prompt('Descrição da atividade (não listada):');if(!a||!a.trim())return;var r=prompt('Recurso (ex.: 02 CALDEIREIRO):','')||'';var s=selT();s[t]=s[t]||{};var n=1;while(s[t]['c'+n])n++;s[t]['c'+n]={st:'n',custom:1,a:a.trim(),r:r.trim()};save();abrir(t);}
+function remCustom(t,id){if(bloqueada())return;var s=selT();if(s[t])delete s[t][id];if(s[t]&&!Object.keys(s[t]).length)delete s[t];save();abrir(t);}
 
 /* ===== render ===== */
 function go(v){VIEW=v;render();}
@@ -219,6 +239,7 @@ function setTurno(t){TURNO=t;render();}
 function setData(v){DATA=v;render();}
 function render(){
   var tl=document.getElementById('toplogo');if(tl&&typeof LOGO!=='undefined')tl.src=LOGO;
+  var ht=document.getElementById('histtop');if(ht)ht.style.display=(DATA<hojeISO())?'inline-block':'none';
   document.getElementById('turnos').innerHTML=
     '<button class="'+(TURNO==='dia'?'on':'')+'" onclick="setTurno(\'dia\')">☀ Dia</button>'+
     '<button class="'+(TURNO==='noite'?'on':'')+'" onclick="setTurno(\'noite\')">🌙 Noite</button>';
@@ -249,18 +270,18 @@ function renderMontar(){
       return '<div class="tagchip '+(seln?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(pend?' <span class="n" title="Atividades programadas a concluir">'+pend+'</span>':'')+(done?' <span class="nc" title="Atividades concluídas">'+done+' ✓</span>':'')+'</div>';}).join('');
     return '<div class="enc"><div class="ench"><span class="nm">'+nm+'</span><span class="cap">'+tags.length+' equipamentos</span><span class="badge">'+nProg+' atividades</span></div><div class="tags">'+chips+'</div></div>';
   }).join('')||'<div class="empty">Nenhum encarregado/equipamento para este turno/área.</div>';
-  return kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+(TURNO==='dia'?'Turno Dia ☀':'Turno Noite 🌙')+' · '+fmtBR(DATA)+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
+  return revBanner()+kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
 }
 function abrir(t){CUR=t;var e=DADOS.equip[t]||{};var ar=area(t);
   document.getElementById('mT').textContent=t+(ar?'  ·  '+AREALBL(ar):'');
   document.getElementById('mS').textContent=(e.desc||'')+' · '+(e.tipo||'')+' · Enc.: '+encNome(DADOS.enc.find(function(g){return g.tags.indexOf(t)>=0;})||{dia:'—'});
-  var acts=atDe(t);var s=selT();var html='';
+  var acts=atDe(t);var s=selT();var BL=bloqueada();var DIS=BL?' disabled':'';var html=BL?'<div class="lockbar" style="margin:0 0 10px">🔒 Congelada (REV '+revN()+') — crie uma revisão para alterar.</div>':'';
   acts.forEach(function(a){
     if(a.f){html+='<div class="fase">'+a.n+'. '+a.f+'</div>';return;}
     var inc=s[t]&&s[t][a.i];var st=inc?s[t][a.i].st:null;
-    html+='<div class="act"><input type="checkbox" class="ck" '+(inc?'checked':'')+' onchange="toggleInc(\''+t+'\',\''+a.i+'\',this.checked);abrir(\''+t+'\')">'+
+    html+='<div class="act"><input type="checkbox" class="ck"'+DIS+' '+(inc?'checked':'')+' onchange="toggleInc(\''+t+'\',\''+a.i+'\',this.checked);abrir(\''+t+'\')">'+
       '<div class="desc">'+a.n+' '+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+
-      (inc?'<div class="st"><button class="n '+(st==='n'?'on':'')+'" onclick="setSt(\''+t+'\',\''+a.i+'\',\'n\')">Não iniciada</button><button class="a '+(st==='a'?'on':'')+'" onclick="setSt(\''+t+'\',\''+a.i+'\',\'a\')">Em andamento</button><button class="c '+(st==='c'?'on':'')+'" onclick="setSt(\''+t+'\',\''+a.i+'\',\'c\')">Concluída</button></div>':'')+
+      (inc?'<div class="st"><button class="n '+(st==='n'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'n\')">Não iniciada</button><button class="a '+(st==='a'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'a\')">Em andamento</button><button class="c '+(st==='c'?'on':'')+'"'+DIS+' onclick="setSt(\''+t+'\',\''+a.i+'\',\'c\')">Concluída</button></div>':'')+
       '</div></div>';
   });
   var sc=selT()[t]||{};var custom=Object.keys(sc).filter(function(k){return sc[k].custom;});
@@ -278,17 +299,17 @@ function renderProg(){
   var si=function(nm){return '<input value="'+((DB.sup[nm]||'')+'').replace(/"/g,'&quot;')+'" oninput="DB.sup[\''+nm.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\']=this.value;save()" placeholder="Supervisor" class="metai">';};
   var PD=[['asg','ASG'],['ca','CA'],['ele','ELE'],['ma','MA'],['insp','INSP'],['pint','PINT'],['sol','SOL'],['munck','MK']];
   var NC=9;var PCT={n:'0',a:'50',c:'100'};
-  var bar='<div class="noprint" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px"><span style="align-self:center;font-size:12px;color:var(--muted)">✏️ Campos editáveis — clique para ajustar</span><button class="btn" onclick="window.print()">🖨 Imprimir — 1 página por encarregado</button></div>';
+  var bar=revBanner()+'<div class="noprint" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px"><span style="align-self:center;font-size:12px;color:var(--muted)">'+(bloqueada()?'🔒 Somente leitura':'✏️ Campos editáveis — clique para ajustar')+'</span><button class="btn" onclick="window.print()">🖨 Imprimir — 1 página por encarregado</button></div>';
   var encs=DADOS.enc.filter(function(g){return g.tags.some(function(t){return s[t]&&Object.keys(s[t]).length;});});
   if(!encs.length)return '<div class="panel">'+bar+'<div class="empty">Nenhuma atividade programada para '+(TURNO==='dia'?'o Dia':'a Noite')+' de '+fmtBR(DATA)+'. Vá em "Montar Programação".</div></div>';
   var th='<tr><th>Item</th><th>TAG</th><th>Descrição do serviço</th><th>Prior.</th><th>Recurso específico</th><th>%</th><th>Status</th><th>PT</th><th>Observações</th></tr>';
   var pages=encs.map(function(g,gi){
     var nm=encNome(g);var gtags=g.tags.filter(function(t){return s[t]&&Object.keys(s[t]).length;});
-    var rows='';var item=0;
+    var rows='';var item=0;var DIS=bloqueada()?' disabled':'';
     function arow(t,key,inf,st){item++;var en=s[t][key]||{};
       var pct=(en.pct!=null?en.pct:PCT[st]);
-      var ssel='<select class="ci cisel st-'+st+'" onchange="setProgF(\''+t+'\',\''+key+'\',\'st\',this.value);render()"><option value="n"'+(st==='n'?' selected':'')+'>Não iniciada</option><option value="a"'+(st==='a'?' selected':'')+'>Em andamento</option><option value="c"'+(st==='c'?' selected':'')+'>Concluída</option></select>';
-      return '<tr><td class="cc">'+item+'</td><td>'+t+'</td><td>'+inf.a+'</td><td class="cc"><input class="ci ciw" value="'+(en.prior||'')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'prior\',this.value)"></td><td>'+(inf.r||'')+'</td><td class="cc"><input class="ci ciw" type="number" min="0" max="100" value="'+pct+'" onchange="setProgPct(\''+t+'\',\''+key+'\',this.value)" title="Digite o avanço (%) — o status muda sozinho"></td><td>'+ssel+'</td><td class="cc"><input class="ci ciw" value="'+(en.pt!=null?(''+en.pt).replace(/"/g,'&quot;'):'PT')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'pt\',this.value)"></td><td><input class="ci" value="'+((en.obs||'')+'').replace(/"/g,'&quot;')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'obs\',this.value)"></td></tr>';}
+      var ssel='<select class="ci cisel st-'+st+'"'+DIS+' onchange="setProgF(\''+t+'\',\''+key+'\',\'st\',this.value);render()"><option value="n"'+(st==='n'?' selected':'')+'>Não iniciada</option><option value="a"'+(st==='a'?' selected':'')+'>Em andamento</option><option value="c"'+(st==='c'?' selected':'')+'>Concluída</option></select>';
+      return '<tr><td class="cc">'+item+'</td><td>'+t+'</td><td>'+inf.a+'</td><td class="cc"><input class="ci ciw"'+DIS+' value="'+(en.prior||'')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'prior\',this.value)"></td><td>'+(inf.r||'')+'</td><td class="cc"><input class="ci ciw"'+DIS+' type="number" min="0" max="100" value="'+pct+'" onchange="setProgPct(\''+t+'\',\''+key+'\',this.value)" title="Digite o avanço (%) — o status muda sozinho"></td><td>'+ssel+'</td><td class="cc"><input class="ci ciw"'+DIS+' value="'+(en.pt!=null?(''+en.pt).replace(/"/g,'&quot;'):'PT')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'pt\',this.value)"></td><td><input class="ci"'+DIS+' value="'+((en.obs||'')+'').replace(/"/g,'&quot;')+'" oninput="setProgF(\''+t+'\',\''+key+'\',\'obs\',this.value)"></td></tr>';}
     gtags.forEach(function(t){var e=DADOS.equip[t]||{};var sel=s[t];
       rows+='<tr class="tagrow"><td colspan="'+NC+'">'+t+' — '+(e.desc||'')+'  ['+AREALBL(area(t))+']</td></tr>';
       var fase='',shown={};
@@ -297,8 +318,8 @@ function renderProg(){
       if(cust.length){rows+='<tr class="faserow"><td colspan="'+NC+'">+ ATIVIDADES INSERIDAS</td></tr>';cust.forEach(function(k){rows+=arow(t,k,{a:sel[k].a,r:sel[k].r},sel[k].st);});}
     });
     var totrow='';
-    var header='<div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">PROGRAMAÇÃO '+(TURNO==='dia'?'DIURNA':'NOTURNA')+' — PARADA UGAV</div><div class="prsub">UGAV · PERMUTADORES · RPBC</div></div></div>'+
-      '<div class="prgrid"><span><b>Encarregado:</b> '+nm+'</span><span><b>Supervisor:</b> '+si(nm)+'</span><span><b>Coordenador do turno:</b> '+mi('coord','Nome')+'</span><span><b>Data:</b> '+fmtBR(DATA)+' ('+(TURNO==='dia'?'Dia ☀':'Noite 🌙')+')</span><span><b>Fiscal:</b> '+mi('fiscal','MA/PM')+'</span><span><b>Planejador:</b> '+mi('planejador','Nome')+'</span><span><b>Emissão:</b> '+mi('emissao','dd/mm/aaaa')+'</span></div>';
+    var header='<div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">PROGRAMAÇÃO '+(TURNO==='dia'?'DIURNA':'NOTURNA')+' — PARADA UGAV</div><div class="prsub">UGAV · PERMUTADORES · <b>REV '+revN()+'</b></div></div></div>'+
+      '<div class="prgrid"><span><b>Encarregado:</b> '+nm+'</span><span><b>Supervisor:</b> '+si(nm)+'</span><span><b>Coordenador do turno:</b> '+mi('coord','Nome')+'</span><span><b>Data:</b> '+fmtBR(DATA)+' · '+turnoLabel()+histTag()+'</span><span><b>Fiscal:</b> '+mi('fiscal','MA/PM')+'</span><span><b>Planejador:</b> '+mi('planejador','Nome')+'</span><span><b>Emissão:</b> '+mi('emissao','dd/mm/aaaa')+'</span></div>';
     return '<div class="page'+(gi>0?' pgbreak':'')+'">'+header+'<div style="overflow:auto"><table class="tbl prtbl"><thead>'+th+'</thead><tbody>'+rows+totrow+'</tbody></table></div></div>';
   }).join('');
   return '<div class="panel">'+bar+pages+'</div>';
@@ -317,10 +338,10 @@ function demandaEnc(g){var dem={},nat=0,dur=cfgGet().dur;var s=selT();
   g.tags.forEach(function(t){var sel=s[t];if(!sel)return;Object.keys(sel).forEach(function(k){nat++;var inf=actInfo(t,k);var rd=recDisc(inf.r);Object.keys(rd).forEach(function(dk){dem[dk]=(dem[dk]||0)+rd[dk]*dur;});});});
   return {dem:dem,nat:nat};}
 function renderCalib(){
-  var c=cfgGet();var horas=c.horas,dur=c.dur;DB.efetivo=DB.efetivo||{};
-  var cfg='<div class="panel"><h3>Parâmetros da análise — '+(TURNO==='dia'?'Turno Dia ☀':'Turno Noite 🌙')+' · '+fmtBR(DATA)+'</h3>'+
+  var c=cfgGet();var horas=horasTurno(),dur=c.dur;var hk='horas_'+TURNO;DB.efetivo=DB.efetivo||{};
+  var cfg='<div class="panel"><h3>Parâmetros da análise — '+turnoLabel()+' · '+fmtBR(DATA)+'</h3>'+
     '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px">'+
-    '<label>Horas por turno: <input type="number" min="1" step="0.5" value="'+horas+'" onchange="setCfg(\'horas\',this.value)" class="metai" style="width:80px"></label>'+
+    '<label>Horas do turno ('+(HORAS[TURNO]||HORAS.dia).ini+'–'+(HORAS[TURNO]||HORAS.dia).fim+'): <input type="number" min="1" step="0.5" value="'+horas+'" onchange="setCfg(\''+hk+'\',this.value)" class="metai" style="width:80px"></label>'+
     '<label>Duração média por atividade (h): <input type="number" min="0.1" step="0.5" value="'+dur+'" onchange="setCfg(\'dur\',this.value)" class="metai" style="width:80px"></label>'+
     '<span style="color:var(--muted);font-size:12px">Demanda (HH) = nº do recurso × duração. Capacidade (HH) = efetivo × horas/turno.</span></div></div>';
   var s=selT();
@@ -363,7 +384,7 @@ function renderResumo(){
       '<table class="tbl" style="margin-top:10px"><thead><tr><th>TAG</th><th>Atividade</th><th>%</th><th>Status</th></tr></thead><tbody>'+items+'</tbody></table></div>';
   }).join('');
   var gpc=T?Math.round(D/T*100):0;
-  var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · PERMUTADORES · '+fmtBR(DATA)+'</div></div></div>'+
+  var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO!=='undefined'?LOGO:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · PERMUTADORES · '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</div></div></div>'+
     '<div class="kpis" style="margin-top:12px">'+kpi('bl',T,'Programadas')+kpi('rd',N,'Não iniciadas')+kpi('am',A,'Em andamento')+kpi('ok',D,'Concluídas')+kpi('ok',gpc+'%','% Executado')+'</div></div>';
   return bar+head+blocks;
 }
@@ -391,9 +412,9 @@ function renderBanco(){
 }
 function addBase(tag){var a=prompt('Descrição da nova atividade para '+tag+':');if(!a||!a.trim())return;var r=prompt('Recurso (ex.: 02 CALDEIREIRO):','')||'';DB.baseExtra=DB.baseExtra||{};DB.baseExtra[tag]=DB.baseExtra[tag]||[];var n=1;while(DB.baseExtra[tag].some(function(x){return x.i==='x'+n;}))n++;DB.baseExtra[tag].push({i:'x'+n,a:a.trim(),r:r.trim()});save();render();}
 function remBase(tag,id){if(DB.baseExtra&&DB.baseExtra[tag]){DB.baseExtra[tag]=DB.baseExtra[tag].filter(function(x){return x.i!==id;});if(!DB.baseExtra[tag].length)delete DB.baseExtra[tag];save();render();}}
-function setProgF(t,k,f,v){var st=selT()[t];var e=st&&st[k];if(e){e[f]=v;save();}}
-function setProgPct(t,k,v){var st=selT()[t];var e=st&&st[k];if(e){var n=parseFloat((''+v).replace(',','.'));if(isNaN(n))n=0;if(n<0)n=0;if(n>100)n=100;e.pct=''+n;e.st=n>=100?'c':n>0?'a':'n';save();render();}}
-function setProgEf(t,k,d,v){var st=selT()[t];var e=st&&st[k];if(e){e.ef=e.ef||{};e.ef[d]=(v===''?null:(parseInt(v)||0));save();}}
+function setProgF(t,k,f,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){e[f]=v;save();}}
+function setProgPct(t,k,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){var n=parseFloat((''+v).replace(',','.'));if(isNaN(n))n=0;if(n<0)n=0;if(n>100)n=100;e.pct=''+n;e.st=n>=100?'c':n>0?'a':'n';save();render();}}
+function setProgEf(t,k,d,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){e.ef=e.ef||{};e.ef[d]=(v===''?null:(parseInt(v)||0));save();}}
 var USERS={taiza:'1234',artur:'4321',vanessa:'1001',c3plan:'101520'};
 var SESS='c3progugav_sess';
 function entrar(){var u=(document.getElementById('lu').value||'').trim().toLowerCase();var p=(document.getElementById('lp').value||'').trim();
