@@ -22,6 +22,8 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .lockbar{background:#fdecea;border:1px solid #f5b7b1;color:#a93226;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .revbar{background:#eaf3ec;border:1px solid #bfe0c8;color:#1e7e34;border-radius:10px;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .revlbl{background:var(--navy);color:#fff;font-weight:700;font-size:12px;padding:3px 10px;border-radius:14px;letter-spacing:.5px}
+.revpick{border:1px solid var(--inpline);background:#fff;border-radius:7px;padding:3px 9px;font-size:12px;font-weight:700;cursor:pointer;color:var(--navy);margin-left:4px}
+.revpick.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .loginwrap{position:fixed;inset:0;background:linear-gradient(135deg,#27306A,#181d44);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .loginwrap.hidden{display:none}
 .loginbox{background:#fff;border-radius:16px;padding:30px 28px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -142,7 +144,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
-  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v5</b></div></div>
+  <div><h1>PROGRAMAÇÃO UGAV — PERMUTADORES</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v6</b></div></div>
   <div class="sp"></div>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
@@ -188,18 +190,26 @@ function hojeISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1
 function p2(n){return String(n).padStart(2,'0');}
 function fmtBR(s){if(!s)return'';var a=s.split('-');return a[2]+'/'+a[1]+'/'+a[0];}
 function chaveBase(){return DATA+'|'+TURNO;}
-function revN(){DB.revn=DB.revn||{};return DB.revn[chaveBase()]||0;}
+var REVVIEW={};
+function maxRev(){DB.revn=DB.revn||{};return DB.revn[chaveBase()]||0;}
+function revN(){var b=chaveBase();var mx=maxRev();var v=REVVIEW[b];if(v==null||v>mx)v=mx;return v;}
+function setRev(r){REVVIEW[chaveBase()]=r;render();}
 function chave(){var r=revN();return DATA+'|'+TURNO+(r>0?'|r'+r:'');}
 function selT(){DB.sel[chave()]=DB.sel[chave()]||{};return DB.sel[chave()];}
-function bloqueada(){if(revN()>0)return false;if(DATA<hojeISO())return true;
+function bloqueada(){var mx=maxRev();var vr=revN();
+  if(vr<mx)return true; /* vendo revisão anterior = só leitura */
+  if(vr>0)return false; /* última revisão é editável */
+  if(DATA<hojeISO())return true;
   if(DATA===hojeISO()){var lk=(HORAS[TURNO]||HORAS.dia).lock;var d=new Date();var nh=d.getHours()+d.getMinutes()/60;
     if(nh>=lk){var s=selT();return Object.keys(s).some(function(t){return Object.keys(s[t]).length;});}}
   return false;}
-function criarRevisao(){var base=chaveBase();var cur=revN();var next=cur+1;var curKey=base+(cur>0?'|r'+cur:'');var nextKey=base+'|r'+next;
-  DB.sel=DB.sel||{};DB.sel[nextKey]=JSON.parse(JSON.stringify(DB.sel[curKey]||{}));DB.revn=DB.revn||{};DB.revn[base]=next;save();render();}
-function revBanner(){var r=revN();var btn='<button class="btn ghost" onclick="criarRevisao()">+ Criar Revisão (REV'+(r+1)+')</button>';var lbl='<span class="revlbl">REV '+r+'</span>';
-  if(bloqueada())return '<div class="lockbar noprint">🔒 <b>Programação congelada</b> — '+(DATA<hojeISO()?'data passada':('após '+(HORAS[TURNO]||HORAS.dia).lock+'h do turno'))+'. Para alterar, crie uma revisão. '+lbl+btn+'</div>';
-  return '<div class="revbar noprint">'+lbl+'<span style="color:var(--muted);font-size:12px">editável</span>'+btn+'</div>';}
+function criarRevisao(){var base=chaveBase();var mx=maxRev();var next=mx+1;var curKey=base+(mx>0?'|r'+mx:'');var nextKey=base+'|r'+next;
+  DB.sel=DB.sel||{};DB.sel[nextKey]=JSON.parse(JSON.stringify(DB.sel[curKey]||{}));DB.revn=DB.revn||{};DB.revn[base]=next;REVVIEW[base]=next;save();render();}
+function revPicker(){var mx=maxRev();if(mx<1)return '';var cur=revN();var s='<span style="font-size:12px;color:var(--muted);margin-left:6px">Ver revisão:</span>';for(var i=0;i<=mx;i++){s+='<button class="revpick'+(i===cur?' on':'')+'" onclick="setRev('+i+')">REV '+i+'</button>';}return s;}
+function revBanner(){var mx=maxRev();var cur=revN();var btn='<button class="btn ghost" onclick="criarRevisao()">+ Criar Revisão (REV'+(mx+1)+')</button>';
+  if(bloqueada()){var msg;if(cur<mx)msg='Revisão anterior (histórico). Volte para a REV '+mx+' para editar.';else if(DATA<hojeISO())msg='Data passada. Crie uma revisão para alterar.';else msg='Congelada após '+(HORAS[TURNO]||HORAS.dia).lock+'h do turno. Crie uma revisão para alterar.';
+    return '<div class="lockbar noprint">🔒 <b>Somente leitura</b> — '+msg+' <span class="revlbl">REV '+cur+'</span>'+revPicker()+btn+'</div>';}
+  return '<div class="revbar noprint"><span class="revlbl">REV '+cur+'</span><span style="color:var(--muted);font-size:12px">editável</span>'+revPicker()+btn+'</div>';}
 function encNome(g){return TURNO==='dia'?g.dia:(g.noite||g.dia);}
 function recDisc(rec){ /* "02 CALDEIREIRO" -> {ca:2} (heurística) */
   rec=(rec||'').toUpperCase();var m=rec.match(/(\d+)/);var q=m?parseInt(m[1]):1;
