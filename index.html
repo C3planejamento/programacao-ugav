@@ -34,7 +34,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .hubinner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 32px;text-align:center;color:#fff}
 .hub-overlay{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:10%;pointer-events:none}
 .hub-logo-area{display:flex;align-items:center;gap:10px;margin-bottom:14px;background:rgba(10,18,50,.55);backdrop-filter:blur(6px);border-radius:10px;padding:8px 16px}
-.hublogo{height:38px;display:block}
+.hublogo{height:90px;display:block;mix-blend-mode:screen;margin-bottom:6px}
 .hub-c3-icon{width:52px;height:52px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
 .hub-c3-icon span{font-family:var(--disp);font-size:26px;font-weight:900;color:#1a2a5e;letter-spacing:-1px}
 .hub-logo-text{color:#fff;font-family:var(--disp);text-align:left;line-height:1.2}
@@ -184,18 +184,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
   <div class="hubbg">
     <img id="hubbg" alt="">
     <div class="hub-overlay">
-      <div class="hub-logo-area">
-        <svg width="180" height="90" viewBox="0 0 360 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- C hexagon -->
-          <path d="M30 50 L10 85 L30 120 L80 120 L100 85 L80 50 Z" fill="white"/>
-          <path d="M42 65 L28 85 L42 105 L68 105 L68 95 L52 95 L44 85 L52 75 L68 75 L68 65 Z" fill="#2d3a7a"/>
-          <!-- 3 hexagon -->
-          <path d="M140 50 L120 85 L140 120 L190 120 L210 85 L190 50 Z" fill="white"/>
-          <path d="M152 65 L148 65 L148 75 L168 75 L168 85 L148 85 L148 95 L168 95 L168 105 L152 105 L148 105 L148 115 L190 115 L204 85 L190 55 L152 55 Z" fill="#2d3a7a"/>
-          <!-- ENGENHARIA & SOLUÇÕES -->
-          <text x="110" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="600" fill="white" letter-spacing="3">ENGENHARIA &amp; SOLUÇÕES</text>
-        </svg>
-      </div>
+      <div class="hub-logo-area"><img class="hublogo" id="hublogo" alt="C3"></div>
       <h2>PROGRAMAÇÃO <span>UGAV</span></h2>
       <div class="hubsub">RPBC · Parada de Manutenção · escolha o tipo de equipamento</div>
     </div>
