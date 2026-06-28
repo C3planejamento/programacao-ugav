@@ -49,10 +49,14 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .hubcard .hct{font-family:var(--disp);font-weight:700;font-size:22px;color:#fff;margin:0 0 6px;letter-spacing:.5px}
 .hubcard .hcdiv{display:none}
 .hubcard .hcn{font-size:12px;color:#6a88b8}
-.hub-sair{position:fixed;top:14px;left:16px;z-index:200;display:inline-flex;align-items:center;gap:8px;background:#2b6fe0;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-family:var(--disp);font-size:14px;font-weight:700;letter-spacing:.4px;cursor:pointer;transition:background .15s;box-shadow:0 4px 16px rgba(43,111,224,.5)}
-.hub-sair:hover{background:#1a5cc8}
-.hub-sair svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.hub-badges{display:none}
+.hub-sair{display:inline-flex;align-items:center;gap:10px;background:#2b6fe0;color:#fff;border:none;border-radius:40px;padding:13px 34px;font-family:var(--disp);font-size:17px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:background .15s,transform .1s;margin:20px 0 16px;box-shadow:0 8px 28px rgba(43,111,224,.5)}
+.hub-sair:hover{background:#1a5cc8;transform:translateY(-2px)}
+.hub-sair svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hub-badges{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;padding-bottom:10px}
+.hub-badge{display:flex;align-items:center;gap:9px;color:#8aabcc;font-size:13px}
+.hub-badge svg{width:20px;height:20px;stroke:#3b8ef0;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hub-badge strong{color:#fff;display:block;font-size:13px;font-weight:700}
+.hub-badge small{font-size:11px;color:#7a90b8;display:block}
 @media(max-width:800px){.hubcards{grid-template-columns:repeat(2,1fr);gap:12px}.hub-badges{gap:16px}.hubbg{aspect-ratio:16/9;max-height:42vw}}
 @media(max-width:480px){.hubcards{grid-template-columns:1fr 1fr;gap:10px}.hubcard{padding:18px 10px 14px}.hubcard .hcic{width:54px;height:54px}.hubcard .hcic svg{width:24px;height:24px}.hubcard .hct{font-size:14px}}
 .loginwrap{position:fixed;inset:0;background:linear-gradient(135deg,#27306A,#181d44);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -208,11 +212,16 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
         <div class="hct">Fornos</div><div class="hcdiv"></div><div class="hcn" id="hcn_fornos">2 equipamentos</div>
       </button>
     </div>
+    <button class="hub-sair" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sair
+    </button>
+    <div class="hub-badges">
+      <div class="hub-badge"><svg viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 5-3.4 8.5-7 10-3.6-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><div><strong>Segurança</strong><small>em primeiro lugar</small></div></div>
+      <div class="hub-badge"><svg viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 5-3.4 8.5-7 10-3.6-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><div><strong>Qualidade</strong><small>em cada escolha</small></div></div>
+      <div class="hub-badge"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><div><strong>Foco em resultados</strong><small>&nbsp;</small></div></div>
+    </div>
   </div>
-  <button class="hub-sair" onclick="logout()">
-    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-    Sair
-  </button>
 </div>
 <div class="top">
   <img class="lg" id="toplogo" alt="C3 Engenharia">
