@@ -51,7 +51,9 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 .hubcard .hct{font-family:var(--disp);font-weight:700;font-size:22px;color:#fff;margin:0 0 6px;letter-spacing:.5px}
 .hubcard .hcdiv{display:none}
 .hubcard .hcn{font-size:12px;color:#6a88b8}
-.hub-sair{display:none}
+.hub-sair{position:fixed;bottom:20px;right:20px;z-index:200;display:inline-flex;align-items:center;gap:8px;background:#2b6fe0;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-family:var(--disp);font-size:14px;font-weight:700;letter-spacing:.4px;cursor:pointer;transition:background .15s;box-shadow:0 4px 16px rgba(43,111,224,.5)}
+.hub-sair:hover{background:#1a5cc8}
+.hub-sair svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hub-sair:hover{background:#1a5cc8;transform:translateY(-2px)}
 .hub-sair svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hub-badges{display:none}
