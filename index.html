@@ -340,7 +340,7 @@ function go(v){VIEW=v;render();}
 function setTurno(t){TURNO=t;render();}
 function setData(v){DATA=v;render();}
 function render(){
-  var tl=document.getElementById('toplogo');if(tl&&typeof LOGO!=='undefined')tl.src=LOGO;
+  var tl=document.getElementById('toplogo');if(tl)tl.src=(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:(typeof LOGO!=='undefined'?LOGO:''));
   var ht=document.getElementById('histtop');if(ht)ht.style.display=(DATA<hojeISO())?'inline-block':'none';
   document.getElementById('turnos').innerHTML=
     '<button class="'+(TURNO==='dia'?'on':'')+'" onclick="setTurno(\'dia\')">☀ Dia</button>'+
