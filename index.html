@@ -291,8 +291,7 @@ function bloqueada(){if(isAdmin())return false;var mx=maxRev();var vr=revN();
   if(vr<mx)return true; /* vendo revisão anterior = só leitura */
   if(vr>0)return false; /* última revisão é editável */
   if(DATA<hojeISO())return true;
-  if(DATA===hojeISO()){var lk=(HORAS[TURNO]||HORAS.dia).lock;var d=new Date();var nh=d.getHours()+d.getMinutes()/60;
-    if(nh>=lk){var s=selT();return Object.keys(s).some(function(t){return Object.keys(s[t]).length;});}}
+  /* trava por horario do turno REMOVIDA a pedido (antes: congelava o dia atual apos 10h no Dia / 20h na Noite) */
   return false;}
 function criarRevisao(){var base=chaveBase();var mx=maxRev();var next=mx+1;var curKey=base+(mx>0?'|r'+mx:'');var nextKey=base+'|r'+next;
   DB.sel=DB.sel||{};DB.sel[nextKey]=JSON.parse(JSON.stringify(DB.sel[curKey]||{}));DB.revn=DB.revn||{};DB.revn[base]=next;REVVIEW[base]=next;save();render();}
