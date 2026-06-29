@@ -226,6 +226,7 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
   <div><h1 id="apptitle">PROGRAMAÇÃO UGAV</h1><div class="sub">RPBC · Parada de Manutenção · Montagem de programação por turno · <b>v11</b></div></div>
   <div class="sp"></div>
   <button class="logout" onclick="voltarHub()" title="Voltar ao menu" style="background:rgba(255,255,255,.2)">⬅ Menu</button>
+  <button class="logout" onclick="abrirInstr()" title="Instruções de uso" style="background:rgba(255,255,255,.2)">ℹ️ Instruções</button>
   <div class="turnos" id="turnos"></div>
   <input type="date" id="data" onchange="setData(this.value)">
   <span class="histb" id="histtop" style="display:none">📚 HISTÓRICO</span>
@@ -237,6 +238,11 @@ body{font-family:var(--body);background:var(--bg);color:var(--txt)}
 <div class="modal" id="modal"><div class="sheet">
   <div class="mhead"><div><div class="t" id="mT">TAG</div><div class="s" id="mS"></div></div><button class="x" onclick="fechar()">✕</button></div>
   <div class="mbody" id="mBody"></div>
+</div></div>
+
+<div class="modal" id="instr"><div class="sheet">
+  <div class="mhead"><div><div class="t">📘 Instruções de uso</div><div class="s" id="instrSub"></div></div><button class="x" onclick="fecharInstr()">✕</button></div>
+  <div class="mbody" id="instrBody"></div>
 </div></div>
 
 <script>
@@ -421,6 +427,32 @@ function abrir(t){CUR=t;var e=DADOS.equip[t]||{};var ar=area(t);
   document.getElementById('modal').classList.add('on');
 }
 function fechar(){document.getElementById('modal').classList.remove('on');render();}
+function fecharInstr(){var m=document.getElementById('instr');if(m)m.classList.remove('on');}
+function abrirInstr(){
+  var nome=(typeof SUBAPPS!=='undefined'&&SUBAPPS[SUB]&&SUBAPPS[SUB].nome)||'';
+  var sub=document.getElementById('instrSub');if(sub)sub.textContent=nome?('Sub-app: '+nome):'';
+  var h4='style="margin:14px 0 4px;font-size:14px;color:var(--navy);font-weight:700"';
+  var ul='style="margin:0;padding-left:18px"';
+  document.getElementById('instrBody').innerHTML=
+   '<div style="font-size:13.5px;line-height:1.65;color:var(--navy)">'+
+   '<p style="margin:0 0 8px"><b>App de Programação UGAV</b> — monte e acompanhe a programação de serviços por turno. Tudo é salvo automaticamente e sincronizado entre os aparelhos.</p>'+
+   '<h4 '+h4+'>1. Barra do topo</h4><ul '+ul+'>'+
+     '<li><b>☀ Dia / 🌙 Noite</b> e <b>data</b>: escolha o turno e o dia que vai programar ou consultar.</li>'+
+     '<li><b>⬅ Menu</b>: volta para a escolha dos sub-apps (Permutadores · Torres · Vasos · Fornos).</li></ul>'+
+   '<h4 '+h4+'>2. Abas</h4><ul '+ul+'>'+
+     '<li><b>Montar Programação</b>: clique no equipamento, marque as atividades que entram no turno e defina o status. Use <b>🔁 Reprogramar pendências p/ próximo turno</b> para levar o que não foi concluído ao próximo turno.</li>'+
+     '<li><b>Programação do Turno</b>: a lista pronta para acompanhar e <b>imprimir</b> (1 página por encarregado).</li>'+
+     '<li><b>Resumo do Turno</b>: visão geral com percentuais e contagens (também imprimível).</li>'+
+     '<li><b>Calibração de Efetivo</b>: dimensionamento de mão de obra.</li>'+
+     '<li><b>Banco de Atividades</b>: edite a lista-base de atividades (WBS) — adicionar, mover, renomear, remover. Atividades já <b>concluídas</b> aparecem como <span class="pill p-c">Concluída</span> e ficam <b>congeladas</b> (não podem ser alteradas).</li>'+
+     '<li><b>Equipamentos</b>: consulta dos equipamentos do sub-app.</li></ul>'+
+   '<h4 '+h4+'>3. Status das atividades</h4><ul '+ul+'>'+
+     '<li><span class="pill p-n">Não iniciada</span> &nbsp; <span class="pill p-a">Em andamento</span> &nbsp; <span class="pill p-c">Concluída</span> — as concluídas viram histórico do que foi executado.</li></ul>'+
+   '<h4 '+h4+'>4. Revisões (REV)</h4><ul '+ul+'>'+
+     '<li>Cada turno tem uma revisão. Para alterar uma programação de data passada, crie <b>+ Nova Revisão</b>. Navegue entre as REVs para ver o histórico.</li></ul>'+
+   '</div>';
+  document.getElementById('instr').classList.add('on');
+}
 var STLBL={n:'Não iniciada',a:'Em andamento',c:'Concluída'};
 function renderProg(){
   var s=selT();var meta=DB.meta||(DB.meta={});DB.sup=DB.sup||{};
