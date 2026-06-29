@@ -322,9 +322,10 @@ function ensureWbs(t){DB.wbs=DB.wbs||{};if(DB.wbs[t])return DB.wbs[t];
 function wbsIdx(t,id){var a=DB.wbs[t]||[];for(var i=0;i<a.length;i++)if(a[i].id===id)return i;return -1;}
 function bancoAddBelow(t,id){var a=ensureWbs(t);var d=prompt('Descrição da nova atividade:');if(!d||!d.trim())return;var r=prompt('Recurso (ex.: 02 CALDEIREIRO):','')||'';var i=wbsIdx(t,id);a.splice(i+1,0,{id:newId(),a:d.trim(),r:r.trim()});save();render();}
 function bancoAddInPhase(t,pid){var a=ensureWbs(t);var d=prompt('Descrição da nova atividade nesta fase:');if(!d||!d.trim())return;var r=prompt('Recurso:','')||'';var i=wbsIdx(t,pid);var j=i+1;while(j<a.length&&a[j].f===undefined)j++;a.splice(j,0,{id:newId(),a:d.trim(),r:r.trim()});save();render();}
-function bancoMove(t,id,dir){var a=ensureWbs(t);var i=wbsIdx(t,id);var j=i+dir;if(i<0||j<0||j>=a.length)return;var tmp=a[i];a[i]=a[j];a[j]=tmp;save();render();}
-function bancoEdit(t,id){var a=ensureWbs(t);var it=a[wbsIdx(t,id)];if(!it)return;if(it.f!==undefined){var nf=prompt('Nome da fase (WBS):',it.f);if(nf&&nf.trim())it.f=nf.trim();}else{var d=prompt('Descrição:',it.a);if(d!=null&&d.trim())it.a=d.trim();var r=prompt('Recurso:',it.r||'');if(r!=null)it.r=r.trim();}save();render();}
-function bancoDel(t,id){var a=ensureWbs(t);var i=wbsIdx(t,id);if(i<0)return;if(!confirm('Remover "'+(a[i].f!==undefined?a[i].f:a[i].a)+'"?'))return;a.splice(i,1);save();render();}
+function bancoCong(t,id){var sc=selT()[t]||{};return (sc[id]&&sc[id].st==='c')||!!concluidaEmOutroTurno(t,id);}
+function bancoMove(t,id,dir){if(bancoCong(t,id))return;var a=ensureWbs(t);var i=wbsIdx(t,id);var j=i+dir;if(i<0||j<0||j>=a.length)return;var tmp=a[i];a[i]=a[j];a[j]=tmp;save();render();}
+function bancoEdit(t,id){if(bancoCong(t,id)){alert('Atividade concluída e congelada — não pode ser editada.');return;}var a=ensureWbs(t);var it=a[wbsIdx(t,id)];if(!it)return;if(it.f!==undefined){var nf=prompt('Nome da fase (WBS):',it.f);if(nf&&nf.trim())it.f=nf.trim();}else{var d=prompt('Descrição:',it.a);if(d!=null&&d.trim())it.a=d.trim();var r=prompt('Recurso:',it.r||'');if(r!=null)it.r=r.trim();}save();render();}
+function bancoDel(t,id){if(bancoCong(t,id)){alert('Atividade concluída e congelada — não pode ser removida.');return;}var a=ensureWbs(t);var i=wbsIdx(t,id);if(i<0)return;if(!confirm('Remover "'+(a[i].f!==undefined?a[i].f:a[i].a)+'"?'))return;a.splice(i,1);save();render();}
 function bancoAddPhase(t){var a=ensureWbs(t);var nf=prompt('Nome da nova fase (WBS):');if(!nf||!nf.trim())return;a.push({id:newId(),f:nf.trim()});save();render();}
 function bancoReset(t){if(!confirm('Restaurar '+t+' para o banco original? (perde as edições deste equipamento)'))return;if(DB.wbs)delete DB.wbs[t];if(DB.baseExtra)delete DB.baseExtra[t];save();render();}
 function subStatus(t,item){var s=selT();return (s[t]&&s[t][item])?s[t][item].st:null;}
@@ -530,7 +531,9 @@ function renderBanco(){
       '<button onclick="bancoAddInPhase(\''+tag+'\',\''+a.i+'\')" class="addb" title="Adicionar atividade no fim desta fase">＋ atividade</button>'+
       '<button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',-1)" title="Subir fase">↑</button><button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',1)" title="Descer fase">↓</button>'+
       '<button onclick="bancoEdit(\''+tag+'\',\''+a.i+'\')" title="Renomear fase">✎</button><button onclick="bancoDel(\''+tag+'\',\''+a.i+'\')" class="del" title="Remover fase">✕</button></span></div>';
-    return '<div class="wact"><div class="wn">'+a.n+'</div><div class="wd">'+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+'</div>'+(sc[a.i]&&sc[a.i].st==='c'?'<span class="pill p-c">Concluída</span>':'')+'<span class="wbtns">'+
+    var doneInfo=(sc[a.i]&&sc[a.i].st==='c')?'neste turno':concluidaEmOutroTurno(tag,a.i);
+    if(doneInfo)return '<div class="wact doneprev"><div class="wn">'+a.n+'</div><div class="wd">'+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+'</div><span class="pill p-c">✓ Concluída</span><span style="font-size:11px;color:var(--muted);margin-left:8px">🔒 '+doneInfo+' · congelada · não editável</span></div>';
+    return '<div class="wact"><div class="wn">'+a.n+'</div><div class="wd">'+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+'</div><span class="wbtns">'+
       '<button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',-1)" title="Subir">↑</button><button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',1)" title="Descer">↓</button>'+
       '<button onclick="bancoAddBelow(\''+tag+'\',\''+a.i+'\')" class="addb" title="Inserir atividade abaixo desta">＋ abaixo</button>'+
       '<button onclick="bancoEdit(\''+tag+'\',\''+a.i+'\')" title="Editar">✎</button><button onclick="bancoDel(\''+tag+'\',\''+a.i+'\')" class="del" title="Remover">✕</button></span></div>';
