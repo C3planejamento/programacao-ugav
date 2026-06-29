@@ -529,7 +529,7 @@ function remBase(tag,id){if(DB.baseExtra&&DB.baseExtra[tag]){DB.baseExtra[tag]=D
 function setProgF(t,k,f,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){e[f]=v;save();}}
 function setProgPct(t,k,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){var n=parseFloat((''+v).replace(',','.'));if(isNaN(n))n=0;if(n<0)n=0;if(n>100)n=100;e.pct=''+n;e.st=n>=100?'c':n>0?'a':'n';save();render();}}
 function setProgEf(t,k,d,v){if(bloqueada())return;var st=selT()[t];var e=st&&st[k];if(e){e.ef=e.ef||{};e.ef[d]=(v===''?null:(parseInt(v)||0));save();}}
-var USERS={taiza:'1234',artur:'4321',vanessa:'1001',c3plan:'101520',gabriel:'123456',kaue:'54321'};
+var USERS={taiza:'1234',artur:'4321',vanessa:'101010',c3plan:'101520',gabriel:'123456',kaue:'54321'};
 var SESS='c3progugav_sess';
 function entrar(){var u=(document.getElementById('lu').value||'').trim().toLowerCase();var p=(document.getElementById('lp').value||'').trim();
   if(USERS[u]&&USERS[u]===p){try{localStorage.setItem(SESS,u);}catch(e){}showApp(u);}
