@@ -446,7 +446,7 @@ function renderProg(){
       if(cust.length){rows+='<tr class="faserow"><td colspan="'+NC+'">+ ATIVIDADES INSERIDAS</td></tr>';cust.forEach(function(k){rows+=arow(t,k,{a:sel[k].a,r:sel[k].r},sel[k].st);});}
     });
     var totrow='';
-    var header='<div class="prhead" style="justify-content:center;position:relative"><img class="prlogo" src="'+(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:'')+'" style="position:absolute;left:0;top:50%;transform:translateY(-50%)"><div style="text-align:center"><div class="prtitle">PROGRAMAÇÃO '+(TURNO==='dia'?'DIURNA':'NOTURNA')+' — PARADA UGAV</div><div class="prsub">UGAV · PERMUTADORES · <b>REV '+revN()+'</b></div></div></div>'+
+    var header='<div class="prhead" style="justify-content:center;position:relative"><img class="prlogo" src="'+(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:'')+'" style="position:absolute;left:0;top:50%;transform:translateY(-50%)"><div style="text-align:center"><div class="prtitle">PROGRAMAÇÃO '+(TURNO==='dia'?'DIURNA':'NOTURNA')+' — PARADA UGAV</div><div class="prsub">UGAV · '+SUBAPPS[SUB].nome.toUpperCase()+' · <b>REV '+revN()+'</b></div></div></div>'+
       '<div class="prgrid"><span><b>Encarregado:</b> '+nm+'</span><span><b>Supervisor:</b> '+si(nm)+'</span><span><b>Coordenador do turno:</b> '+mi('coord','Nome')+'</span><span><b>Data:</b> '+fmtBR(DATA)+' · '+turnoLabel()+histTag()+'</span><span><b>Fiscal:</b> '+mi('fiscal','MA/PM')+'</span><span><b>Planejador:</b> '+mi('planejador','Nome')+'</span><span><b>Emissão:</b> '+mi('emissao','dd/mm/aaaa')+'</span></div>';
     return '<div class="page'+(gi>0?' pgbreak':'')+'">'+header+'<div style="overflow:auto"><table class="tbl prtbl"><thead>'+th+'</thead><tbody>'+rows+totrow+'</tbody></table></div></div>';
   }).join('');
@@ -515,7 +515,7 @@ function renderResumo(){
   }).join('');
   if(RESF!=='todos'&&!blocks.replace(/\s/g,''))blocks='<div class="panel"><div class="empty">Nenhuma atividade com status "'+STLBL[RESF]+'" neste turno.</div></div>';
   var gpc=T?Math.round(D/T*100):0;
-  var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · PERMUTADORES · '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</div></div></div>'+
+  var head='<div class="panel" id="rhead"><div class="prhead"><img class="prlogo" src="'+(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:'')+'"><div><div class="prtitle">RESUMO DO TURNO '+(TURNO==='dia'?'DIURNO ☀':'NOTURNO 🌙')+'</div><div class="prsub">UGAV · '+SUBAPPS[SUB].nome.toUpperCase()+' · '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</div></div></div>'+
     '<div class="kpis" style="margin-top:12px">'+kpi('bl',T,'Programadas')+kpi('rd',N,'Não iniciadas')+kpi('am',A,'Em andamento')+kpi('ok',D,'Concluídas')+kpi('ok',gpc+'%','% Executado')+'</div></div>';
   return bar+head+blocks;
 }
