@@ -338,6 +338,23 @@ function remCustom(t,id){if(bloqueada())return;var s=selT();if(s[t])delete s[t][
 function go(v){VIEW=v;render();}
 function setTurno(t){TURNO=t;render();}
 function setData(v){DATA=v;render();}
+function nextTurnoRef(){
+  if(TURNO==='dia')return {data:DATA,turno:'noite'};
+  var d=new Date(DATA+'T12:00:00');d.setDate(d.getDate()+1);
+  return {data:d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),turno:'dia'};
+}
+function replicarPendencias(){
+  var src=selT();var pend=[];
+  Object.keys(src).forEach(function(t){Object.keys(src[t]).forEach(function(i){var it=src[t][i];if(it&&it.st!=='c')pend.push([t,i]);});});
+  if(!pend.length){alert('Não há atividades pendentes (não concluídas) neste turno para replicar.');return;}
+  var nt=nextTurnoRef();var destino=(nt.turno==='dia'?'Dia ☀':'Noite 🌙')+' · '+fmtBR(nt.data);
+  if(!confirm('Replicar '+pend.length+' atividade(s) NÃO concluída(s) para o próximo turno?\n\nDestino: '+destino+'\n(As concluídas não são copiadas; itens já existentes lá são mantidos.)'))return;
+  var base=nt.data+'|'+nt.turno;var mxn=(DB.revn&&DB.revn[base])||0;var nkey=base+(mxn>0?'|r'+mxn:'');
+  DB.sel=DB.sel||{};DB.sel[nkey]=DB.sel[nkey]||{};var dst=DB.sel[nkey];var n=0,jc=0;
+  pend.forEach(function(p){var t=p[0],i=p[1];dst[t]=dst[t]||{};if(dst[t][i]){jc++;}else{dst[t][i]=JSON.parse(JSON.stringify(src[t][i]));n++;}});
+  save();
+  alert('✅ '+n+' atividade(s) replicada(s) para '+destino+'.'+(jc?(' '+jc+' já existia(m) lá e foram mantidas.'):''));
+}
 function render(){
   var tl=document.getElementById('toplogo');if(tl)tl.src=(typeof LOGO_PRINT!=='undefined'?LOGO_PRINT:(typeof LOGO!=='undefined'?LOGO:''));
   var ht=document.getElementById('histtop');if(ht)ht.style.display=(DATA<hojeISO())?'inline-block':'none';
@@ -371,7 +388,8 @@ function renderMontar(){
       return '<div class="tagchip '+(seln?'sel':'')+'" onclick="abrir(\''+t+'\')"><span class="dot ab-'+ar+'" style="background:var(--'+ar+')"></span>'+t+(ar?' <span class="areatag ab-'+ar+'">'+AREALBL(ar)+'</span>':'')+(pend?' <span class="n" title="Atividades programadas a concluir">'+pend+'</span>':'')+(done?' <span class="nc" title="Atividades concluídas">'+done+' ✓</span>':'')+'</div>';}).join('');
     return '<div class="enc"><div class="ench"><span class="nm">'+nm+'</span><span class="cap">'+tags.length+' equipamentos</span><span class="badge">'+nProg+' atividades</span></div><div class="tags">'+chips+'</div></div>';
   }).join('')||'<div class="empty">Nenhum encarregado/equipamento para este turno/área.</div>';
-  return revBanner()+kpisMontar()+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
+  var repBtn=bloqueada()?'':'<div class="noprint" style="display:flex;justify-content:flex-end;margin:0 0 10px"><button class="btn" style="background:#2e7d32;color:#fff" onclick="replicarPendencias()">🔁 Reprogramar pendências p/ próximo turno</button></div>';
+  return revBanner()+kpisMontar()+repBtn+flt+'<div class="panel"><h3>Encarregados e equipamentos — '+turnoLabel()+' · '+fmtBR(DATA)+histTag()+'</h3><div class="vsub" style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique num equipamento para marcar as atividades que entram neste turno.</div>'+cards+'</div>';
 }
 function concluidaEmOutroTurno(tag,item){var curBase=chaveBase();
   for(var k in DB.sel){var base=k.split('|').slice(0,2).join('|');if(base===curBase)continue;
