@@ -485,11 +485,12 @@ function renderProg(){
   }).join('');
   return '<div class="panel">'+bar+pages+'</div>';
 }
+function realizadasDe(t){var set={};for(var k in DB.sel){var s=DB.sel[k]&&DB.sel[k][t];if(s){for(var i in s){if(s[i]&&s[i].st==='c')set[i]=1;}}}return Object.keys(set).length;}
 function renderEquip(){
   var flt='<div class="flt">'+[['todas','Todas'],['acida','Ácida'],['naoacida','Não ácida'],['aircooler','Air cooler']].map(function(a){return '<button class="'+(FAREA===a[0]?'on':'')+'" onclick="FAREA=\''+a[0]+'\';render()">'+a[1]+'</button>';}).join('')+'</div>';
   var rows=DADOS.ordem.filter(function(t){return FAREA==='todas'||area(t)===FAREA;}).map(function(t){var e=DADOS.equip[t]||{};var n=atDe(t).filter(function(a){return a.a;}).length;
-    return '<tr class="clic" onclick="abrir(\''+t+'\')" style="cursor:pointer"><td><b>'+t+'</b></td><td>'+(e.desc||'')+'</td><td>'+(e.tipo||'')+'</td><td><span class="areatag ab-'+area(t)+'">'+AREALBL(area(t))+'</span></td><td>'+n+'</td><td>'+(e.encDia||'')+'</td><td>'+(e.encNoite||'')+'</td></tr>';}).join('');
-  return flt+'<div class="panel"><h3>Equipamentos ('+DADOS.ordem.length+')</h3><table class="tbl"><thead><tr><th>TAG</th><th>Descrição</th><th>Tipo</th><th>Área</th><th>Atividades</th><th>Enc. Dia</th><th>Enc. Noite</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    return '<tr class="clic" onclick="abrir(\''+t+'\')" style="cursor:pointer"><td><b>'+t+'</b></td><td>'+(e.desc||'')+'</td><td>'+(e.tipo||'')+'</td><td><span class="areatag ab-'+area(t)+'">'+AREALBL(area(t))+'</span></td><td class="cc">'+n+'</td><td class="cc"><b style="color:#1f9a52">'+realizadasDe(t)+'</b></td><td>'+(e.encDia||'')+'</td><td>'+(e.encNoite||'')+'</td></tr>';}).join('');
+  return flt+'<div class="panel"><h3>Equipamentos ('+DADOS.ordem.length+')</h3><table class="tbl"><thead><tr><th>TAG</th><th>Descrição</th><th>Tipo</th><th>Área</th><th>Ativ. Previstas</th><th>Realizadas</th><th>Enc. Dia</th><th>Enc. Noite</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 var EFD=[['ca','Caldeireiro'],['sol','Soldador'],['asg','Ajudante'],['ma','Mecânico'],['ele','Eletricista'],['insp','Inspetor'],['pint','Pintor'],['munck','Munck/Guind.']];
 function cfgGet(){DB.cfg=DB.cfg||{};if(DB.cfg.horas==null)DB.cfg.horas=10;if(DB.cfg.dur==null)DB.cfg.dur=2;return DB.cfg;}
