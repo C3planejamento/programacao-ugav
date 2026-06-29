@@ -530,7 +530,7 @@ function renderBanco(){
       '<button onclick="bancoAddInPhase(\''+tag+'\',\''+a.i+'\')" class="addb" title="Adicionar atividade no fim desta fase">＋ atividade</button>'+
       '<button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',-1)" title="Subir fase">↑</button><button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',1)" title="Descer fase">↓</button>'+
       '<button onclick="bancoEdit(\''+tag+'\',\''+a.i+'\')" title="Renomear fase">✎</button><button onclick="bancoDel(\''+tag+'\',\''+a.i+'\')" class="del" title="Remover fase">✕</button></span></div>';
-    return '<div class="wact"><div class="wn">'+a.n+'</div><div class="wd">'+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+'</div>'+(sc[a.i]&&sc[a.i].st==='c'?'<span class="pill p-c">Concluída</span>':sc[a.i]&&sc[a.i].st==='a'?'<span class="pill p-a">Em andamento</span>':'')+'<span class="wbtns">'+
+    return '<div class="wact"><div class="wn">'+a.n+'</div><div class="wd">'+a.a+(a.r?'<div class="rec">👷 '+a.r+'</div>':'')+'</div>'+(sc[a.i]&&sc[a.i].st==='c'?'<span class="pill p-c">Concluída</span>':'')+'<span class="wbtns">'+
       '<button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',-1)" title="Subir">↑</button><button onclick="bancoMove(\''+tag+'\',\''+a.i+'\',1)" title="Descer">↓</button>'+
       '<button onclick="bancoAddBelow(\''+tag+'\',\''+a.i+'\')" class="addb" title="Inserir atividade abaixo desta">＋ abaixo</button>'+
       '<button onclick="bancoEdit(\''+tag+'\',\''+a.i+'\')" title="Editar">✎</button><button onclick="bancoDel(\''+tag+'\',\''+a.i+'\')" class="del" title="Remover">✕</button></span></div>';
